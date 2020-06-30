@@ -41,14 +41,14 @@ var MAX_SPEED = 6; // pixel/ms
 
 function rHit(r, rTarget) {
 	return ((plotHitsDimension.innerWidth / 2) / rTarget) * r;
-};
+}
 
 
 
 function v(v) {
 	var colour = 'rgb(' + clampInt(0, 255, (v / MAX_SPEED) * 255) + ', 0, 0)';
 	return colour;
-};
+}
 
 var scatterX = d3.scale.linear()
 	.domain([0.5, 5.5])
@@ -272,30 +272,10 @@ var fittsTest = {
 			if (this.updateTimeoutHandle) {
 				window.clearTimeout(this.updateTimeoutHandle);
 			}
-			this.updateTimeoutHandle = window.setTimeout(this.updatePlots, UPDATE_DELAY, this);
-			
+			this.updateTimeoutHandle = window.setTimeout(this.updatePlots, UPDATE_DELAY, this);		
 			
 			var newPoint = {x: x, y: y, t: (new Date).getTime()}
 			this.currentPath.push(newPoint)
-			
-			var dt = newPoint.t - this.last.t;
-			var dist = distance(this.last, {x: x, y: y})
-			if (dt > 0)
-				var speed = dist / dt;
-			else
-				var speed = 0;
-			
-			testAreaSVG.append('line')
-				// .attr('class', '')
-				.attr('x1', this.last.x)
-				.attr('x2', newPoint.x)
-				.attr('y1', this.last.y)
-				.attr('y2', newPoint.y)
-				.style('stroke', v(speed))
-				.transition()
-					.duration(5000)
-					.style('stroke-opacity', 0)
-					.remove();
 				
 			this.last = newPoint;
 		}
@@ -500,6 +480,22 @@ var fittsTest = {
 			this.updatePlots(this);
 		}
 	},
+	
+	saveData: function() {
+		// download currently available data		
+		//var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.data));
+		var fileName = 'fitt_data.json';
+		
+		var downloadAnchorNode = document.createElement('a');
+		downloadAnchorNode.setAttribute('href', 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(this.data)));
+		downloadAnchorNode.setAttribute('download', fileName);
+		document.body.appendChild(downloadAnchorNode); // required for firefox
+		downloadAnchorNode.click();
+		downloadAnchorNode.remove();
+		
+		fittsTest.active = false;
+	},
+	
 	
 	highlightDataSet: function(num) {
 		d3.selectAll('#dataSets div')
@@ -815,7 +811,7 @@ function assIsKey(needle, assArr) {
 
 
 /**
- * Project a point q onto the line p0-p1
+ * Project a point p onto the line A-B
  * Code taken from: http://www.alecjacobson.com/weblog/?p=1486
  */
 function project(A, B, p) {
@@ -1195,4 +1191,8 @@ $('#randomizeCheckbox').change(function(event) {
 $('#addDataSetButton').click(function() {
 	fittsTest.addDataSet();
 	fittsTest.active = false;
+});
+
+$('#saveDataButton').click(function() {
+	fittsTest.saveData();	
 });
